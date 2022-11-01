@@ -1,0 +1,388 @@
+<html>
+<head>
+<title>Train_romo_and_dm_task_reduce_lif_adex_random_delay_600_long_a.ipynb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #65737e;}
+.s1 { color: #c0c5ce;}
+.s2 { color: #b48ead;}
+.s3 { color: #8fa1b3;}
+.s4 { color: #a3be8c;}
+.s5 { color: #ab7967;}
+.s6 { color: #d0876e;}
+</style>
+</head>
+<body bgcolor="#2b303b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Train_romo_and_dm_task_reduce_lif_adex_random_delay_600_long_a.ipynb</font>
+</center></td></tr></table>
+<pre><span class="s0">#%% md 
+</span><span class="s1"># Two task network  
+ 
+## Network has some inputs 
+ 
+1. The fixation.  
+1. The first context mod.  
+1. The second ontext mod.  
+ 
+## Network has five outputs 
+1. The fixation.  
+1. The first output. 
+1. The second output 
+ 
+ 
+ 
+ 
+&lt;div&gt; 
+&lt;img src=&quot;./images/Sheme.png&quot; width=&quot;300&quot;/&gt; 
+&lt;/div&gt; 
+ 
+&gt; Learning rule: superspike 
+ 
+&gt; Neuron type: LifAdex + refrac 
+ 
+&gt; Task: romo 
+ 
+</span><span class="s0">#%% 
+</span><span class="s2">import </span><span class="s1">torch</span>
+<span class="s2">import </span><span class="s1">numpy </span><span class="s2">as </span><span class="s1">np</span>
+<span class="s2">import </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">nn </span><span class="s2">as </span><span class="s1">nn</span>
+<span class="s2">import </span><span class="s1">matplotlib</span><span class="s3">.</span><span class="s1">pyplot </span><span class="s2">as </span><span class="s1">plt  </span><span class="s0"># for analys</span>
+<span class="s2">from </span><span class="s1">cgtasknet</span><span class="s3">.</span><span class="s1">net</span><span class="s3">.</span><span class="s1">lifadexrefrac </span><span class="s2">import </span><span class="s1">SNNlifadexrefrac</span>
+<span class="s2">from </span><span class="s1">cgtasknet</span><span class="s3">.</span><span class="s1">tasks</span><span class="s3">.</span><span class="s1">reduce </span><span class="s2">import </span><span class="s3">(</span>
+    <span class="s1">MultyReduceTasks</span><span class="s3">,</span>
+    <span class="s1">RomoTaskRandomModParameters</span><span class="s3">,</span>
+    <span class="s1">RomoTaskParameters</span><span class="s3">,</span>
+    <span class="s1">DMTaskParameters</span><span class="s3">,</span>
+    <span class="s1">DMTaskRandomModParameters</span><span class="s3">,</span>
+<span class="s3">)</span>
+<span class="s2">from </span><span class="s1">norse</span><span class="s3">.</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">functional</span><span class="s3">.</span><span class="s1">lif_adex_refrac </span><span class="s2">import </span><span class="s1">LIFAdExRefracParameters</span>
+<span class="s2">from </span><span class="s1">norse</span><span class="s3">.</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">functional</span><span class="s3">.</span><span class="s1">lif_adex </span><span class="s2">import </span><span class="s1">LIFAdExParameters</span>
+<span class="s0">#%% 
+</span>
+<span class="s0">#%% md 
+</span><span class="s1">## Step -1: Create dataset 
+</span><span class="s0">#%% 
+</span><span class="s1">device </span><span class="s3">= </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">device</span><span class="s3">(</span><span class="s4">&quot;cuda:0&quot; </span><span class="s2">if </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">cuda</span><span class="s3">.</span><span class="s1">is_available</span><span class="s3">() </span><span class="s2">else </span><span class="s4">&quot;cpu&quot;</span><span class="s3">)</span>
+<span class="s0"># device = torch.device('cpu')</span>
+<span class="s1">print</span><span class="s3">(</span><span class="s4">f'Device: </span><span class="s5">{</span><span class="s3">(</span><span class="s4">&quot;gpu (cuda)&quot; </span><span class="s2">if </span><span class="s1">device</span><span class="s3">.</span><span class="s1">type</span><span class="s3">==</span><span class="s4">&quot;cuda&quot; </span><span class="s2">else </span><span class="s4">&quot;cpu&quot;</span><span class="s3">)</span><span class="s5">}</span><span class="s4">'</span><span class="s3">)</span>
+<span class="s0">#%% 
+</span><span class="s3">%</span><span class="s1">matplotlib widget</span>
+<span class="s1">batch_size </span><span class="s3">= </span><span class="s6">50</span>
+<span class="s1">number_of_tasks </span><span class="s3">= </span><span class="s6">1</span>
+<span class="s1">romo_parameters </span><span class="s3">= </span><span class="s1">RomoTaskRandomModParameters</span><span class="s3">(</span>
+    <span class="s1">romo</span><span class="s3">=</span><span class="s1">RomoTaskParameters</span><span class="s3">(</span>
+        <span class="s1">delay</span><span class="s3">=</span><span class="s6">0.1</span><span class="s3">,</span>
+        <span class="s1">positive_shift_delay_time</span><span class="s3">=</span><span class="s6">0.5</span><span class="s3">,</span>
+        <span class="s1">trial_time</span><span class="s3">=</span><span class="s6">0.1</span><span class="s3">,</span>
+        <span class="s1">positive_shift_trial_time</span><span class="s3">=</span><span class="s6">0.2</span><span class="s3">,</span>
+    <span class="s3">),</span>
+    <span class="s1">n_mods</span><span class="s3">=</span><span class="s6">1</span>
+<span class="s3">)</span>
+<span class="s1">dm_parameters </span><span class="s3">= </span><span class="s1">DMTaskRandomModParameters</span><span class="s3">(</span>
+    <span class="s1">dm</span><span class="s3">=</span><span class="s1">DMTaskParameters</span><span class="s3">(</span><span class="s1">trial_time</span><span class="s3">=</span><span class="s6">0.1</span><span class="s3">, </span><span class="s1">positive_shift_trial_time</span><span class="s3">=</span><span class="s6">0.8</span><span class="s3">),</span>
+    <span class="s1">n_mods</span><span class="s3">=</span><span class="s6">1</span>
+<span class="s3">)</span>
+
+<span class="s1">task_names </span><span class="s3">= [</span><span class="s4">&quot;RomoTask1&quot;</span><span class="s3">, </span><span class="s4">&quot;DMTask1&quot;</span><span class="s3">]</span>
+<span class="s1">tasks </span><span class="s3">= </span><span class="s1">dict</span><span class="s3">()</span>
+<span class="s1">tasks</span><span class="s3">[</span><span class="s1">task_names</span><span class="s3">[</span><span class="s6">0</span><span class="s3">]] = </span><span class="s1">romo_parameters</span>
+<span class="s1">tasks</span><span class="s3">[</span><span class="s1">task_names</span><span class="s3">[</span><span class="s6">1</span><span class="s3">]] = </span><span class="s1">dm_parameters</span>
+<span class="s0"># task_parameters = RomoTaskParameters(delay=0.1, positive_shift_delay_time=.0, trial_time = 0.2, positive_shift_trial_time=.0)</span>
+<span class="s1">Task </span><span class="s3">= </span><span class="s1">MultyReduceTasks</span><span class="s3">(</span>
+    <span class="s1">tasks</span><span class="s3">=</span><span class="s1">tasks</span><span class="s3">,</span>
+    <span class="s1">batch_size</span><span class="s3">=</span><span class="s1">batch_size</span><span class="s3">,</span>
+    <span class="s1">enable_fixation_delay</span><span class="s3">=</span><span class="s2">True</span><span class="s3">,</span>
+    <span class="s1">sequence_bathces</span><span class="s3">=</span><span class="s2">True</span><span class="s3">,</span>
+    <span class="s1">number_of_inputs</span><span class="s3">=</span><span class="s6">1</span>
+<span class="s3">)</span>
+
+
+<span class="s1">demonstrate_in</span><span class="s3">, </span><span class="s1">demonstrate_out </span><span class="s3">= </span><span class="s1">Task</span><span class="s3">.</span><span class="s1">dataset</span><span class="s3">(</span><span class="s6">1</span><span class="s3">, </span><span class="s1">delay_between</span><span class="s3">=</span><span class="s6">0</span><span class="s3">)</span>
+<span class="s2">for </span><span class="s1">i </span><span class="s2">in </span><span class="s1">range</span><span class="s3">(</span><span class="s6">4</span><span class="s3">):</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">figure</span><span class="s3">()</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">demonstrate_in</span><span class="s3">[:, </span><span class="s6">0</span><span class="s3">, </span><span class="s1">i</span><span class="s3">])</span>
+
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">show</span><span class="s3">()</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">close</span><span class="s3">()</span>
+<span class="s0">#%% 
+</span><span class="s1">n_mods</span><span class="s3">=</span><span class="s6">1</span>
+<span class="s0">#%% md 
+</span><span class="s1">## Step 1.1: Create model 
+</span><span class="s0">#%% 
+</span><span class="s1">feature_size</span><span class="s3">, </span><span class="s1">output_size </span><span class="s3">= </span><span class="s1">Task</span><span class="s3">.</span><span class="s1">feature_and_act_size</span>
+<span class="s1">hidden_size </span><span class="s3">= </span><span class="s6">450</span>
+
+<span class="s1">neuron_parameters </span><span class="s3">= </span><span class="s1">LIFAdExRefracParameters</span><span class="s3">(</span>
+    <span class="s1">LIFAdExParameters</span><span class="s3">(</span>
+        <span class="s1">v_th</span><span class="s3">=</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">as_tensor</span><span class="s3">(</span><span class="s6">0.65</span><span class="s3">),</span>
+        <span class="s1">tau_ada_inv</span><span class="s3">= </span><span class="s6">0.5 </span><span class="s3">+ (</span><span class="s6">6 </span><span class="s3">- </span><span class="s6">0.5</span><span class="s3">) * </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">rand</span><span class="s3">(</span><span class="s1">hidden_size</span><span class="s3">),</span>
+        <span class="s1">alpha</span><span class="s3">=</span><span class="s6">30</span><span class="s3">,</span>
+        <span class="s0"># method='heavi_erfc',</span>
+        <span class="s1">method</span><span class="s3">=</span><span class="s4">&quot;super&quot;</span><span class="s3">,</span>
+    <span class="s3">),</span>
+    <span class="s1">rho_reset</span><span class="s3">=</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">as_tensor</span><span class="s3">(</span><span class="s6">1</span><span class="s3">),</span>
+    <span class="s0"># rho_reset = torch.as_tensor(5)</span>
+<span class="s3">)</span>
+<span class="s1">model </span><span class="s3">= </span><span class="s1">SNNlifadexrefrac</span><span class="s3">(</span>
+    <span class="s1">feature_size</span><span class="s3">,</span>
+    <span class="s1">hidden_size</span><span class="s3">,</span>
+    <span class="s1">output_size</span><span class="s3">,</span>
+    <span class="s1">neuron_parameters</span><span class="s3">=</span><span class="s1">neuron_parameters</span><span class="s3">,</span>
+    <span class="s1">tau_filter_inv</span><span class="s3">=</span><span class="s6">500</span><span class="s3">,</span>
+<span class="s3">).</span><span class="s1">to</span><span class="s3">(</span><span class="s1">device</span><span class="s3">)</span>
+<span class="s0"># model = torch.nn.DataParallel(model, device_ids=[0]).to(device)</span>
+<span class="s0">#%% 
+</span><span class="s1">tau_ada_inv_distrib  </span><span class="s3">= </span><span class="s1">neuron_parameters</span><span class="s3">.</span><span class="s1">lif_adex</span><span class="s3">.</span><span class="s1">tau_ada_inv</span><span class="s3">.</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">()</span>
+<span class="s0">#%% 
+#np.save('tau_ada_inv', tau_ada_inv_distrib)</span>
+<span class="s0">#%% md 
+</span><span class="s1">## Step 1.2: Save pre-learning weights 
+</span><span class="s0">#%% 
+</span><span class="s1">weights_pre_l </span><span class="s3">= []</span>
+<span class="s2">with </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">no_grad</span><span class="s3">():</span>
+    <span class="s2">for </span><span class="s1">name</span><span class="s3">, </span><span class="s1">param </span><span class="s2">in </span><span class="s1">model</span><span class="s3">.</span><span class="s1">named_parameters</span><span class="s3">():</span>
+        <span class="s1">print</span><span class="s3">(</span><span class="s4">f&quot;name = </span><span class="s5">{</span><span class="s1">name</span><span class="s5">}</span><span class="s4">&quot;</span><span class="s3">)</span>
+        <span class="s2">if </span><span class="s1">param</span><span class="s3">.</span><span class="s1">requires_grad</span><span class="s3">:</span>
+            <span class="s1">weights_pre_l</span><span class="s3">.</span><span class="s1">append</span><span class="s3">((</span><span class="s1">param</span><span class="s3">).</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">())</span>
+<span class="s0">#%% md 
+</span><span class="s1">## Step 2: loss and creterion  
+</span><span class="s0">#%% 
+</span><span class="s1">learning_rate </span><span class="s3">= </span><span class="s6">1e-3</span>
+
+
+<span class="s2">class </span><span class="s1">RMSELoss</span><span class="s3">(</span><span class="s1">nn</span><span class="s3">.</span><span class="s1">Module</span><span class="s3">):</span>
+    <span class="s2">def </span><span class="s1">__init__</span><span class="s3">(</span><span class="s1">self</span><span class="s3">):</span>
+        <span class="s1">super</span><span class="s3">().</span><span class="s1">__init__</span><span class="s3">()</span>
+        <span class="s1">self</span><span class="s3">.</span><span class="s1">mse </span><span class="s3">= </span><span class="s1">nn</span><span class="s3">.</span><span class="s1">MSELoss</span><span class="s3">()</span>
+
+    <span class="s2">def </span><span class="s1">forward</span><span class="s3">(</span><span class="s1">self</span><span class="s3">, </span><span class="s1">yhat</span><span class="s3">, </span><span class="s1">y</span><span class="s3">):</span>
+        <span class="s2">return </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">sqrt</span><span class="s3">(</span><span class="s1">self</span><span class="s3">.</span><span class="s1">mse</span><span class="s3">(</span><span class="s1">yhat</span><span class="s3">, </span><span class="s1">y</span><span class="s3">))</span>
+
+
+<span class="s1">criterion </span><span class="s3">= </span><span class="s1">nn</span><span class="s3">.</span><span class="s1">MSELoss</span><span class="s3">()</span>
+<span class="s1">optimizer </span><span class="s3">= </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">optim</span><span class="s3">.</span><span class="s1">Adam</span><span class="s3">(</span><span class="s1">model</span><span class="s3">.</span><span class="s1">parameters</span><span class="s3">(), </span><span class="s1">lr</span><span class="s3">=</span><span class="s1">learning_rate</span><span class="s3">)</span>
+<span class="s0"># optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)</span>
+<span class="s0">#%% 
+</span><span class="s1">name </span><span class="s3">= </span><span class="s4">f&quot;Train_dm_and_romo_task_reduce_lif_adex_random_delay_long_a</span><span class="s5">{</span><span class="s1">hidden_size</span><span class="s5">}</span><span class="s4">&quot;</span>
+<span class="s0">#%% md 
+</span><span class="s1">#Precreate data 
+</span><span class="s0">#%% 
+</span><span class="s1">l_inputs </span><span class="s3">= []</span>
+<span class="s1">l_outputs </span><span class="s3">= []</span>
+<span class="s2">from </span><span class="s1">tqdm </span><span class="s2">import </span><span class="s1">tqdm</span>
+
+<span class="s2">for </span><span class="s1">i </span><span class="s2">in </span><span class="s1">tqdm</span><span class="s3">(</span><span class="s1">range</span><span class="s3">(</span><span class="s6">2000</span><span class="s3">)):</span>
+    <span class="s1">tmp_inputs</span><span class="s3">, </span><span class="s1">tmp_target_outputs </span><span class="s3">= </span><span class="s1">Task</span><span class="s3">.</span><span class="s1">dataset</span><span class="s3">(</span><span class="s1">number_of_tasks</span><span class="s3">, </span><span class="s1">delay_between</span><span class="s3">=</span><span class="s6">0</span><span class="s3">)</span>
+    <span class="s1">tmp_inputs </span><span class="s3">+= </span><span class="s1">np</span><span class="s3">.</span><span class="s1">random</span><span class="s3">.</span><span class="s1">normal</span><span class="s3">(</span><span class="s6">0</span><span class="s3">, </span><span class="s6">0.01</span><span class="s3">, </span><span class="s1">size</span><span class="s3">=</span><span class="s1">tmp_inputs</span><span class="s3">.</span><span class="s1">shape</span><span class="s3">)</span>
+    <span class="s1">l_inputs</span><span class="s3">.</span><span class="s1">append</span><span class="s3">(</span><span class="s1">tmp_inputs</span><span class="s3">)</span>
+    <span class="s1">l_outputs</span><span class="s3">.</span><span class="s1">append</span><span class="s3">(</span><span class="s1">tmp_target_outputs</span><span class="s3">)</span>
+<span class="s0">#%% md 
+</span><span class="s1">## Step 3: Train loop 
+</span><span class="s0">#%% 
+</span><span class="s2">from </span><span class="s1">cgtasknet</span><span class="s3">.</span><span class="s1">net</span><span class="s3">.</span><span class="s1">states </span><span class="s2">import </span><span class="s1">LIFAdExRefracInitState</span>
+<span class="s2">from </span><span class="s1">cgtasknet</span><span class="s3">.</span><span class="s1">instruments</span><span class="s3">.</span><span class="s1">instrument_accuracy_network </span><span class="s2">import </span><span class="s1">correct_answer</span>
+
+<span class="s1">init_state </span><span class="s3">= </span><span class="s1">LIFAdExRefracInitState</span><span class="s3">(</span><span class="s1">batch_size</span><span class="s3">, </span><span class="s1">hidden_size</span><span class="s3">, </span><span class="s1">device</span><span class="s3">=</span><span class="s1">device</span><span class="s3">)</span>
+
+<span class="s0">#</span>
+
+<span class="s1">running_loss </span><span class="s3">= </span><span class="s6">0</span>
+<span class="s2">from </span><span class="s1">tqdm </span><span class="s2">import </span><span class="s1">tqdm</span>
+
+<span class="s2">for </span><span class="s1">i </span><span class="s2">in </span><span class="s1">tqdm</span><span class="s3">(</span><span class="s1">range</span><span class="s3">(</span><span class="s6">2000</span><span class="s3">)):</span>
+    <span class="s1">inputs </span><span class="s3">= </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">from_numpy</span><span class="s3">(</span><span class="s1">l_inputs</span><span class="s3">[</span><span class="s1">i</span><span class="s3">]).</span><span class="s1">type</span><span class="s3">(</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">float</span><span class="s3">).</span><span class="s1">to</span><span class="s3">(</span><span class="s1">device</span><span class="s3">)</span>
+    <span class="s1">target_outputs </span><span class="s3">= </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">from_numpy</span><span class="s3">(</span><span class="s1">l_outputs</span><span class="s3">[</span><span class="s1">i</span><span class="s3">]).</span><span class="s1">type</span><span class="s3">(</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">float</span><span class="s3">).</span><span class="s1">to</span><span class="s3">(</span><span class="s1">device</span><span class="s3">)</span>
+    <span class="s1">optimizer</span><span class="s3">.</span><span class="s1">zero_grad</span><span class="s3">()</span>
+
+    <span class="s0"># forward + backward + optimize</span>
+    <span class="s1">outputs</span><span class="s3">, </span><span class="s1">_ </span><span class="s3">= </span><span class="s1">model</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">)</span>
+
+    <span class="s1">loss </span><span class="s3">= </span><span class="s1">criterion</span><span class="s3">(</span><span class="s1">outputs</span><span class="s3">, </span><span class="s1">target_outputs</span><span class="s3">)</span>
+    <span class="s1">loss</span><span class="s3">.</span><span class="s1">backward</span><span class="s3">()</span>
+    <span class="s1">optimizer</span><span class="s3">.</span><span class="s1">step</span><span class="s3">()</span>
+
+    <span class="s0"># print statistics</span>
+    <span class="s1">running_loss </span><span class="s3">+= </span><span class="s1">loss</span><span class="s3">.</span><span class="s1">item</span><span class="s3">()</span>
+    <span class="s2">if </span><span class="s1">i </span><span class="s3">% </span><span class="s6">10 </span><span class="s3">== </span><span class="s6">9</span><span class="s3">:</span>
+        <span class="s2">with </span><span class="s1">open</span><span class="s3">(</span><span class="s4">&quot;log_multy.txt&quot;</span><span class="s3">, </span><span class="s4">&quot;a&quot;</span><span class="s3">) </span><span class="s2">as </span><span class="s1">f</span><span class="s3">:</span>
+            <span class="s1">f</span><span class="s3">.</span><span class="s1">write</span><span class="s3">(</span><span class="s4">&quot;epoch: {:d} loss: {:0.5f}</span><span class="s5">\n</span><span class="s4">&quot;</span><span class="s3">.</span><span class="s1">format</span><span class="s3">(</span><span class="s1">i </span><span class="s3">+ </span><span class="s6">1</span><span class="s3">, </span><span class="s1">running_loss </span><span class="s3">/ </span><span class="s6">10</span><span class="s3">))</span>
+        <span class="s1">running_loss </span><span class="s3">= </span><span class="s6">0.0</span>
+        <span class="s2">with </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">no_grad</span><span class="s3">():</span>
+            <span class="s1">torch</span><span class="s3">.</span><span class="s1">save</span><span class="s3">(</span>
+                <span class="s1">model</span><span class="s3">.</span><span class="s1">state_dict</span><span class="s3">(),</span>
+                <span class="s1">name</span><span class="s3">,</span>
+            <span class="s3">)</span>
+    <span class="s2">if </span><span class="s1">i </span><span class="s3">% </span><span class="s6">10 </span><span class="s3">== </span><span class="s6">9</span><span class="s3">:</span>
+
+        <span class="s1">result </span><span class="s3">= </span><span class="s6">0</span>
+        <span class="s2">for </span><span class="s1">j </span><span class="s2">in </span><span class="s1">range</span><span class="s3">(</span><span class="s6">10</span><span class="s3">):</span>
+            <span class="s1">inputs</span><span class="s3">, </span><span class="s1">target_outputs </span><span class="s3">= </span><span class="s1">Task</span><span class="s3">.</span><span class="s1">dataset</span><span class="s3">(</span><span class="s6">1</span><span class="s3">, </span><span class="s1">delay_between</span><span class="s3">=</span><span class="s6">0</span><span class="s3">)</span>
+            <span class="s1">inputs </span><span class="s3">+= </span><span class="s1">np</span><span class="s3">.</span><span class="s1">random</span><span class="s3">.</span><span class="s1">normal</span><span class="s3">(</span><span class="s6">0</span><span class="s3">, </span><span class="s6">0.01</span><span class="s3">, </span><span class="s1">size</span><span class="s3">=(</span><span class="s1">inputs</span><span class="s3">.</span><span class="s1">shape</span><span class="s3">))</span>
+            <span class="s1">inputs </span><span class="s3">= </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">from_numpy</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">).</span><span class="s1">type</span><span class="s3">(</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">float</span><span class="s3">).</span><span class="s1">to</span><span class="s3">(</span><span class="s1">device</span><span class="s3">)</span>
+            <span class="s1">target_outputs </span><span class="s3">= (</span>
+                <span class="s1">torch</span><span class="s3">.</span><span class="s1">from_numpy</span><span class="s3">(</span><span class="s1">target_outputs</span><span class="s3">).</span><span class="s1">type</span><span class="s3">(</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">float</span><span class="s3">).</span><span class="s1">to</span><span class="s3">(</span><span class="s1">device</span><span class="s3">)</span>
+            <span class="s3">)</span>
+            <span class="s1">outputs </span><span class="s3">= </span><span class="s1">model</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">)[</span><span class="s6">0</span><span class="s3">]</span>
+            <span class="s1">answers </span><span class="s3">= </span><span class="s1">correct_answer</span><span class="s3">(</span>
+                <span class="s1">outputs</span><span class="s3">[:, :, </span><span class="s6">1</span><span class="s3">:], </span><span class="s1">target_outputs</span><span class="s3">[:, :, </span><span class="s6">1</span><span class="s3">:], </span><span class="s1">target_outputs</span><span class="s3">[:, :, </span><span class="s6">0</span><span class="s3">]</span>
+            <span class="s3">)</span>
+            <span class="s1">result </span><span class="s3">+= </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">sum</span><span class="s3">(</span><span class="s1">answers</span><span class="s3">).</span><span class="s1">item</span><span class="s3">()</span>
+        <span class="s1">accuracy </span><span class="s3">= </span><span class="s1">result </span><span class="s3">/ </span><span class="s1">batch_size </span><span class="s3">/ </span><span class="s6">10 </span><span class="s3">* </span><span class="s6">100</span>
+        <span class="s2">with </span><span class="s1">open</span><span class="s3">(</span><span class="s4">&quot;accuracy_multy.txt&quot;</span><span class="s3">, </span><span class="s4">&quot;a&quot;</span><span class="s3">) </span><span class="s2">as </span><span class="s1">f</span><span class="s3">:</span>
+            <span class="s1">f</span><span class="s3">.</span><span class="s1">write</span><span class="s3">(</span><span class="s4">f&quot;ecpoch = </span><span class="s5">{</span><span class="s1">i</span><span class="s5">}</span><span class="s4">; correct/all = </span><span class="s5">{</span><span class="s1">accuracy</span><span class="s5">}\n</span><span class="s4">&quot;</span><span class="s3">)</span>
+<span class="s1">print</span><span class="s3">(</span><span class="s4">&quot;Finished Training&quot;</span><span class="s3">)</span>
+<span class="s0">#%% 
+</span><span class="s1">inputs </span><span class="s3">= </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">from_numpy</span><span class="s3">(</span><span class="s1">l_inputs</span><span class="s3">[</span><span class="s1">i</span><span class="s3">]).</span><span class="s1">type</span><span class="s3">(</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">float</span><span class="s3">).</span><span class="s1">to</span><span class="s3">(</span><span class="s1">device</span><span class="s3">)</span>
+<span class="s0">#%% 
+</span><span class="s1">model </span><span class="s3">= </span><span class="s1">model</span><span class="s3">.</span><span class="s1">to</span><span class="s3">(</span><span class="s1">device</span><span class="s3">)</span>
+<span class="s0">#%% 
+</span><span class="s2">from </span><span class="s1">cgtasknet</span><span class="s3">.</span><span class="s1">net</span><span class="s3">.</span><span class="s1">states </span><span class="s2">import </span><span class="s1">LIFAdExRefracInitState</span>
+<span class="s2">from </span><span class="s1">cgtasknet</span><span class="s3">.</span><span class="s1">instruments</span><span class="s3">.</span><span class="s1">instrument_accuracy_network </span><span class="s2">import </span><span class="s1">correct_answer</span>
+<span class="s2">from </span><span class="s1">tqdm </span><span class="s2">import </span><span class="s1">tqdm</span>
+
+<span class="s1">task_parameters_test </span><span class="s3">= </span><span class="s1">RomoTaskParameters</span><span class="s3">(</span>
+    <span class="s1">delay</span><span class="s3">=</span><span class="s6">0.5</span><span class="s3">,</span>
+    <span class="s1">positive_shift_delay_time</span><span class="s3">=</span><span class="s6">0</span><span class="s3">,</span>
+    <span class="s1">trial_time</span><span class="s3">=</span><span class="s6">0.1</span><span class="s3">,</span>
+    <span class="s1">positive_shift_trial_time</span><span class="s3">=</span><span class="s6">0.2</span><span class="s3">,</span>
+<span class="s3">)</span>
+<span class="s1">result </span><span class="s3">= </span><span class="s6">0</span>
+<span class="s1">model </span><span class="s3">= </span><span class="s1">model</span><span class="s3">.</span><span class="s1">to</span><span class="s3">(</span><span class="s1">device</span><span class="s3">)</span>
+<span class="s2">for </span><span class="s1">i </span><span class="s2">in </span><span class="s1">tqdm</span><span class="s3">(</span><span class="s1">range</span><span class="s3">(</span><span class="s6">100</span><span class="s3">)):</span>
+    <span class="s1">inputs</span><span class="s3">, </span><span class="s1">target_outputs </span><span class="s3">= </span><span class="s1">Task</span><span class="s3">.</span><span class="s1">dataset</span><span class="s3">(</span><span class="s6">3</span><span class="s3">, </span><span class="s1">delay_between</span><span class="s3">=</span><span class="s6">0</span><span class="s3">)</span>
+    <span class="s1">inputs </span><span class="s3">+= </span><span class="s1">np</span><span class="s3">.</span><span class="s1">random</span><span class="s3">.</span><span class="s1">normal</span><span class="s3">(</span><span class="s6">0</span><span class="s3">, </span><span class="s6">0.01</span><span class="s3">, </span><span class="s1">size</span><span class="s3">=</span><span class="s1">inputs</span><span class="s3">.</span><span class="s1">shape</span><span class="s3">)</span>
+    <span class="s1">inputs </span><span class="s3">= </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">from_numpy</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">).</span><span class="s1">type</span><span class="s3">(</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">float</span><span class="s3">).</span><span class="s1">to</span><span class="s3">(</span><span class="s1">device</span><span class="s3">)</span>
+    <span class="s1">target_outputs </span><span class="s3">= </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">from_numpy</span><span class="s3">(</span><span class="s1">target_outputs</span><span class="s3">).</span><span class="s1">type</span><span class="s3">(</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">float</span><span class="s3">).</span><span class="s1">to</span><span class="s3">(</span><span class="s1">device</span><span class="s3">)</span>
+    <span class="s1">outputs </span><span class="s3">= </span><span class="s1">model</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">)[</span><span class="s6">0</span><span class="s3">]</span>
+    <span class="s1">answers </span><span class="s3">= </span><span class="s1">correct_answer</span><span class="s3">(</span>
+        <span class="s1">outputs</span><span class="s3">[:, :, </span><span class="s6">1</span><span class="s3">:], </span><span class="s1">target_outputs</span><span class="s3">[:, :, </span><span class="s6">1</span><span class="s3">:], </span><span class="s1">target_outputs</span><span class="s3">[:, :, </span><span class="s6">0</span><span class="s3">]</span>
+    <span class="s3">)</span>
+    <span class="s1">result </span><span class="s3">+= </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">sum</span><span class="s3">(</span><span class="s1">answers</span><span class="s3">).</span><span class="s1">item</span><span class="s3">()</span>
+<span class="s1">round</span><span class="s3">(</span><span class="s1">result </span><span class="s3">/ </span><span class="s1">batch_size </span><span class="s3">/ </span><span class="s6">100 </span><span class="s3">* </span><span class="s6">100</span><span class="s3">, </span><span class="s6">2</span><span class="s3">)</span>
+<span class="s0">#%% 
+</span><span class="s1">fig </span><span class="s3">= </span><span class="s1">plt</span><span class="s3">.</span><span class="s1">figure</span><span class="s3">(</span><span class="s1">figsize</span><span class="s3">=(</span><span class="s6">15</span><span class="s3">, </span><span class="s6">10</span><span class="s3">))</span>
+
+<span class="s1">start </span><span class="s3">= </span><span class="s6">30</span>
+<span class="s2">for </span><span class="s1">batch </span><span class="s2">in </span><span class="s1">range</span><span class="s3">(</span><span class="s1">start</span><span class="s3">, </span><span class="s6">9 </span><span class="s3">+ </span><span class="s1">start</span><span class="s3">, </span><span class="s6">1</span><span class="s3">):</span>
+    <span class="s1">fig</span><span class="s3">.</span><span class="s1">add_subplot</span><span class="s3">(</span><span class="s6">520 </span><span class="s3">+ </span><span class="s1">batch </span><span class="s3">+ </span><span class="s6">1 </span><span class="s3">- </span><span class="s1">start</span><span class="s3">)</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">outputs</span><span class="s3">[:, </span><span class="s1">batch</span><span class="s3">, </span><span class="s6">1</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">())</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">outputs</span><span class="s3">[:, </span><span class="s1">batch</span><span class="s3">, </span><span class="s6">2</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">())</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">target_outputs</span><span class="s3">.</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">()[:, </span><span class="s1">batch</span><span class="s3">, </span><span class="s6">1</span><span class="s3">], </span><span class="s1">label</span><span class="s3">=</span><span class="s4">f&quot;t_out</span><span class="s5">{</span><span class="s6">2</span><span class="s5">}</span><span class="s4">&quot;</span><span class="s3">)</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">target_outputs</span><span class="s3">.</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">()[:, </span><span class="s1">batch</span><span class="s3">, </span><span class="s6">2</span><span class="s3">], </span><span class="s1">label</span><span class="s3">=</span><span class="s4">f&quot;t_out</span><span class="s5">{</span><span class="s6">3</span><span class="s5">}</span><span class="s4">&quot;</span><span class="s3">)</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">[:, </span><span class="s1">batch</span><span class="s3">, </span><span class="s6">1</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">())</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">legend</span><span class="s3">()</span>
+    <span class="s0"># plt.plot(inputs[:, 0, 0].detach().cpu())</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">tight_layout</span><span class="s3">()</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">show</span><span class="s3">()</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">close</span><span class="s3">()</span>
+<span class="s0">#%% 
+</span><span class="s1">fig </span><span class="s3">= </span><span class="s1">plt</span><span class="s3">.</span><span class="s1">figure</span><span class="s3">(</span><span class="s1">figsize</span><span class="s3">=(</span><span class="s6">15</span><span class="s3">, </span><span class="s6">10</span><span class="s3">))</span>
+
+<span class="s1">start </span><span class="s3">= </span><span class="s6">30</span>
+<span class="s2">for </span><span class="s1">batch </span><span class="s2">in </span><span class="s1">range</span><span class="s3">(</span><span class="s1">start</span><span class="s3">, </span><span class="s6">9 </span><span class="s3">+ </span><span class="s1">start</span><span class="s3">, </span><span class="s6">1</span><span class="s3">):</span>
+    <span class="s1">fig</span><span class="s3">.</span><span class="s1">add_subplot</span><span class="s3">(</span><span class="s6">520 </span><span class="s3">+ </span><span class="s1">batch </span><span class="s3">+ </span><span class="s6">1 </span><span class="s3">- </span><span class="s1">start</span><span class="s3">)</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">[:, </span><span class="s1">batch</span><span class="s3">, </span><span class="s6">0</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">())</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">[:, </span><span class="s1">batch</span><span class="s3">, </span><span class="s6">1</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">())</span>
+
+    <span class="s0"># plt.legend()</span>
+    <span class="s0"># plt.plot(inputs[:, 0, 0].detach().cpu())</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">tight_layout</span><span class="s3">()</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">show</span><span class="s3">()</span>
+<span class="s0"># plt.close()</span>
+<span class="s0">#%% 
+</span><span class="s1">plt</span><span class="s3">.</span><span class="s1">figure</span><span class="s3">()</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">[:, </span><span class="s1">batch</span><span class="s3">, </span><span class="s6">1</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">())</span>
+
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">target_outputs</span><span class="s3">.</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">()[:, </span><span class="s1">batch</span><span class="s3">, </span><span class="s6">1</span><span class="s3">])</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">target_outputs</span><span class="s3">.</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">()[:, </span><span class="s1">batch</span><span class="s3">, </span><span class="s6">2</span><span class="s3">])</span>
+<span class="s0">#%% 
+</span>
+<span class="s0">#%% 
+</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">save</span><span class="s3">(</span><span class="s1">model</span><span class="s3">.</span><span class="s1">state_dict</span><span class="s3">(), </span><span class="s1">name</span><span class="s3">)</span>
+<span class="s0">#%% 
+</span><span class="s2">if True</span><span class="s3">:</span>
+    <span class="s1">model</span><span class="s3">.</span><span class="s1">load_state_dict</span><span class="s3">(</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">load</span><span class="s3">(</span><span class="s1">name</span><span class="s3">))</span>
+<span class="s0">#%% 
+</span><span class="s1">dmparamsv </span><span class="s3">= </span><span class="s1">dmparams1</span>
+<span class="s1">Taskplot </span><span class="s3">= </span><span class="s1">RomoTask</span><span class="s3">(</span><span class="s1">params</span><span class="s3">=</span><span class="s1">dmparamsv</span><span class="s3">, </span><span class="s1">batch_size</span><span class="s3">=</span><span class="s6">1</span><span class="s3">, </span><span class="s1">delay_beetween</span><span class="s3">=</span><span class="s6">100</span><span class="s3">)</span>
+<span class="s1">inputs</span><span class="s3">, </span><span class="s1">target_outputs </span><span class="s3">= </span><span class="s1">Taskplot</span><span class="s3">.</span><span class="s1">dataset</span><span class="s3">(</span><span class="s6">10</span><span class="s3">)</span>
+<span class="s1">inputs </span><span class="s3">+= </span><span class="s1">np</span><span class="s3">.</span><span class="s1">random</span><span class="s3">.</span><span class="s1">normal</span><span class="s3">(</span><span class="s6">0</span><span class="s3">, </span><span class="s6">0.01</span><span class="s3">, </span><span class="s1">size</span><span class="s3">=(</span><span class="s1">inputs</span><span class="s3">.</span><span class="s1">shape</span><span class="s3">))</span>
+<span class="s1">inputs </span><span class="s3">= </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">from_numpy</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">).</span><span class="s1">type</span><span class="s3">(</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">float</span><span class="s3">).</span><span class="s1">to</span><span class="s3">(</span><span class="s1">device</span><span class="s3">)</span>
+<span class="s1">target_outputs </span><span class="s3">= </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">from_numpy</span><span class="s3">(</span><span class="s1">target_outputs</span><span class="s3">).</span><span class="s1">type</span><span class="s3">(</span><span class="s1">torch</span><span class="s3">.</span><span class="s1">float</span><span class="s3">).</span><span class="s1">to</span><span class="s3">(</span><span class="s1">device</span><span class="s3">)</span>
+<span class="s1">outputs</span><span class="s3">, </span><span class="s1">states </span><span class="s3">= </span><span class="s1">model</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">)</span>
+<span class="s0">#%% 
+</span><span class="s3">%</span><span class="s1">matplotlib inline</span>
+<span class="s2">for </span><span class="s1">i </span><span class="s2">in </span><span class="s1">range</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">.</span><span class="s1">shape</span><span class="s3">[</span><span class="s6">2</span><span class="s3">]):</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">[:, </span><span class="s6">0</span><span class="s3">, </span><span class="s1">i</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">(), </span><span class="s1">label</span><span class="s3">=</span><span class="s4">fr&quot;$u_</span><span class="s5">{</span><span class="s1">i </span><span class="s3">+ </span><span class="s6">1</span><span class="s5">}</span><span class="s4">$&quot;</span><span class="s3">)</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">legend</span><span class="s3">()</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">show</span><span class="s3">()</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">close</span><span class="s3">()</span>
+<span class="s2">for </span><span class="s1">i </span><span class="s2">in </span><span class="s1">range</span><span class="s3">(</span><span class="s1">outputs</span><span class="s3">.</span><span class="s1">shape</span><span class="s3">[</span><span class="s6">2</span><span class="s3">]):</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">outputs</span><span class="s3">[:, </span><span class="s6">0</span><span class="s3">, </span><span class="s1">i</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">(), </span><span class="s1">label</span><span class="s3">=</span><span class="s4">fr&quot;$u_</span><span class="s5">{</span><span class="s1">i </span><span class="s3">+ </span><span class="s6">1</span><span class="s5">}</span><span class="s4">$&quot;</span><span class="s3">)</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span>
+        <span class="s1">target_outputs</span><span class="s3">[:, </span><span class="s6">0</span><span class="s3">, </span><span class="s1">i</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">(), </span><span class="s1">label</span><span class="s3">=</span><span class="s4">fr&quot;$u^</span><span class="s5">{{</span><span class="s4">target</span><span class="s5">}}</span><span class="s4">_</span><span class="s5">{</span><span class="s1">i </span><span class="s3">+ </span><span class="s6">1</span><span class="s5">}</span><span class="s4">$&quot;</span>
+    <span class="s3">)</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">legend</span><span class="s3">()</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">show</span><span class="s3">()</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">close</span><span class="s3">()</span>
+
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span>
+    <span class="s1">outputs</span><span class="s3">[:, </span><span class="s6">0</span><span class="s3">, -</span><span class="s6">2</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">() - </span><span class="s1">outputs</span><span class="s3">[:, </span><span class="s6">0</span><span class="s3">, -</span><span class="s6">1</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">(),</span>
+    <span class="s1">label</span><span class="s3">=</span><span class="s4">fr&quot;$u_2 - u_3$&quot;</span><span class="s3">,</span>
+<span class="s3">)</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">target_outputs</span><span class="s3">[:, </span><span class="s6">0</span><span class="s3">, -</span><span class="s6">2</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">(), </span><span class="s1">label</span><span class="s3">=</span><span class="s4">fr&quot;$u^</span><span class="s5">{{</span><span class="s4">target</span><span class="s5">}}</span><span class="s4">_</span><span class="s5">{</span><span class="s6">2</span><span class="s5">}</span><span class="s4">$&quot;</span><span class="s3">)</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">target_outputs</span><span class="s3">[:, </span><span class="s6">0</span><span class="s3">, -</span><span class="s6">1</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">(), </span><span class="s1">label</span><span class="s3">=</span><span class="s4">fr&quot;$u^</span><span class="s5">{{</span><span class="s4">target</span><span class="s5">}}</span><span class="s4">_</span><span class="s5">{</span><span class="s6">3</span><span class="s5">}</span><span class="s4">$&quot;</span><span class="s3">)</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">legend</span><span class="s3">()</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">show</span><span class="s3">()</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">close</span><span class="s3">()</span>
+<span class="s0">#%% 
+</span><span class="s3">%</span><span class="s1">matplotlib inline</span>
+<span class="s2">for </span><span class="s1">i </span><span class="s2">in </span><span class="s1">range</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">.</span><span class="s1">shape</span><span class="s3">[</span><span class="s6">2</span><span class="s3">]):</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">inputs</span><span class="s3">[:, </span><span class="s6">0</span><span class="s3">, </span><span class="s1">i</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">(), </span><span class="s1">label</span><span class="s3">=</span><span class="s4">fr&quot;$u_</span><span class="s5">{</span><span class="s1">i </span><span class="s3">+ </span><span class="s6">1</span><span class="s5">}</span><span class="s4">$&quot;</span><span class="s3">)</span>
+
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">legend</span><span class="s3">()</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">show</span><span class="s3">()</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">close</span><span class="s3">()</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">target_outputs</span><span class="s3">[:, </span><span class="s6">0</span><span class="s3">, </span><span class="s6">1</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">(), </span><span class="s1">label</span><span class="s3">=</span><span class="s4">fr&quot;$y_</span><span class="s5">{</span><span class="s6">2</span><span class="s5">}</span><span class="s4">$&quot;</span><span class="s3">)</span>
+<span class="s1">plt</span><span class="s3">.</span><span class="s1">plot</span><span class="s3">(</span><span class="s1">target_outputs</span><span class="s3">[:, </span><span class="s6">0</span><span class="s3">, </span><span class="s6">2</span><span class="s3">].</span><span class="s1">detach</span><span class="s3">().</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">(), </span><span class="s1">label</span><span class="s3">=</span><span class="s4">fr&quot;$y_</span><span class="s5">{</span><span class="s6">3</span><span class="s5">}</span><span class="s4">$&quot;</span><span class="s3">)</span>
+<span class="s0">#%% 
+</span><span class="s1">weights_post_l </span><span class="s3">= []</span>
+<span class="s2">with </span><span class="s1">torch</span><span class="s3">.</span><span class="s1">no_grad</span><span class="s3">():</span>
+    <span class="s2">for </span><span class="s1">name</span><span class="s3">, </span><span class="s1">param </span><span class="s2">in </span><span class="s1">model</span><span class="s3">.</span><span class="s1">named_parameters</span><span class="s3">():</span>
+        <span class="s2">if </span><span class="s1">param</span><span class="s3">.</span><span class="s1">requires_grad</span><span class="s3">:</span>
+            <span class="s1">weights_post_l</span><span class="s3">.</span><span class="s1">append</span><span class="s3">((</span><span class="s1">param</span><span class="s3">).</span><span class="s1">cpu</span><span class="s3">().</span><span class="s1">numpy</span><span class="s3">())</span>
+<span class="s0">#%% 
+</span><span class="s3">%</span><span class="s1">matplotlib inline</span>
+<span class="s2">for </span><span class="s1">i </span><span class="s2">in </span><span class="s1">range</span><span class="s3">(</span><span class="s1">len</span><span class="s3">(</span><span class="s1">weights_pre_l</span><span class="s3">) - </span><span class="s6">1</span><span class="s3">):</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">imshow</span><span class="s3">((</span><span class="s1">weights_pre_l</span><span class="s3">[</span><span class="s1">i</span><span class="s3">]), </span><span class="s1">aspect</span><span class="s3">=</span><span class="s4">&quot;auto&quot;</span><span class="s3">, </span><span class="s1">cmap</span><span class="s3">=</span><span class="s4">&quot;jet&quot;</span><span class="s3">)</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">colorbar</span><span class="s3">()</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">show</span><span class="s3">()</span>
+<span class="s0">#%% 
+</span><span class="s3">%</span><span class="s1">matplotlib inline</span>
+<span class="s2">for </span><span class="s1">i </span><span class="s2">in </span><span class="s1">range</span><span class="s3">(</span><span class="s1">len</span><span class="s3">(</span><span class="s1">weights_pre_l</span><span class="s3">) - </span><span class="s6">1</span><span class="s3">):</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">imshow</span><span class="s3">(</span>
+        <span class="s3">(</span><span class="s1">weights_post_l</span><span class="s3">[</span><span class="s1">i</span><span class="s3">]),</span>
+        <span class="s1">aspect</span><span class="s3">=</span><span class="s4">&quot;auto&quot;</span><span class="s3">,</span>
+        <span class="s1">cmap</span><span class="s3">=</span><span class="s4">&quot;jet&quot;</span><span class="s3">,</span>
+    <span class="s3">)</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">colorbar</span><span class="s3">()</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">show</span><span class="s3">()</span>
+<span class="s0">#%% 
+</span><span class="s3">%</span><span class="s1">matplotlib inline</span>
+<span class="s2">for </span><span class="s1">i </span><span class="s2">in </span><span class="s1">range</span><span class="s3">(</span><span class="s1">len</span><span class="s3">(</span><span class="s1">weights_pre_l</span><span class="s3">) - </span><span class="s6">1</span><span class="s3">):</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">imshow</span><span class="s3">(</span>
+        <span class="s3">(</span><span class="s1">weights_post_l</span><span class="s3">[</span><span class="s1">i</span><span class="s3">] - </span><span class="s1">weights_pre_l</span><span class="s3">[</span><span class="s1">i</span><span class="s3">]),</span>
+        <span class="s1">aspect</span><span class="s3">=</span><span class="s4">&quot;auto&quot;</span><span class="s3">,</span>
+        <span class="s1">cmap</span><span class="s3">=</span><span class="s4">&quot;jet&quot;</span><span class="s3">,</span>
+        <span class="s1">vmin</span><span class="s3">=-</span><span class="s6">0.2</span><span class="s3">,</span>
+        <span class="s1">vmax</span><span class="s3">=</span><span class="s6">0.4</span><span class="s3">,</span>
+    <span class="s3">)</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">colorbar</span><span class="s3">()</span>
+    <span class="s1">plt</span><span class="s3">.</span><span class="s1">show</span><span class="s3">()</span>
+<span class="s0">#%% 
+</span></pre>
+</body>
+</html>

@@ -1,0 +1,206 @@
+\begin{thebibliography}{10}
+
+\bibitem{norse2021}
+Christian Pehle and Jens~Egholm Pedersen.
+\newblock {Norse - A deep learning library for spiking neural networks},
+  January 2021.
+\newblock Documentation: https://norse.ai/docs/.
+
+\bibitem{neftci2019surrogate}
+Emre~O Neftci, Hesham Mostafa, and Friedemann Zenke.
+\newblock Surrogate gradient learning in spiking neural networks: Bringing the
+  power of gradient-based optimization to spiking neural networks.
+\newblock {\em IEEE Signal Processing Magazine}, 36(6):51--63, 2019.
+
+\bibitem{zenke2018superspike}
+Friedemann Zenke and Surya Ganguli.
+\newblock Superspike: Supervised learning in multilayer spiking neural
+  networks.
+\newblock {\em Neural computation}, 30(6):1514--1541, 2018.
+
+\bibitem{kingma2014adam}
+Diederik~P Kingma and Jimmy Ba.
+\newblock Adam: A method for stochastic optimization.
+\newblock {\em arXiv preprint arXiv:1412.6980}, 2014.
+
+\bibitem{Goodfellow-et-al-2016}
+Ian Goodfellow, Yoshua Bengio, and Aaron Courville.
+\newblock {\em Deep Learning}.
+\newblock MIT Press, 2016.
+\newblock \url{http://www.deeplearningbook.org}.
+
+\bibitem{richards2019deep}
+Blake~A Richards, Timothy~P Lillicrap, Philippe Beaudoin, Yoshua Bengio, Rafal
+  Bogacz, Amelia Christensen, Claudia Clopath, Rui~Ponte Costa, Archy
+  de~Berker, Surya Ganguli, et~al.
+\newblock A deep learning framework for neuroscience.
+\newblock {\em Nature neuroscience}, 22(11):1761--1770, 2019.
+
+\bibitem{vyas2020computation}
+Saurabh Vyas, Matthew~D Golub, David Sussillo, and Krishna~V Shenoy.
+\newblock Computation through neural population dynamics.
+\newblock {\em Annual Review of Neuroscience}, 43:249--275, 2020.
+
+\bibitem{rabinovich2012information}
+Mikhail~I Rabinovich, Valentin~S Afraimovich, Christian Bick, and Pablo Varona.
+\newblock Information flow dynamics in the brain.
+\newblock {\em Physics of life reviews}, 9(1):51--73, 2012.
+
+\bibitem{rabinovich2012principles}
+Mikhail~I Rabinovich, Karl~J Friston, and Pablo Varona.
+\newblock {\em Principles of brain dynamics: global state interactions}.
+\newblock MIT Press, 2012.
+
+\bibitem{mante2013context}
+Valerio Mante, David Sussillo, Krishna~V Shenoy, and William~T Newsome.
+\newblock Context-dependent computation by recurrent dynamics in prefrontal
+  cortex.
+\newblock {\em nature}, 503(7474):78--84, 2013.
+
+\bibitem{funahashi1989mnemonic}
+Shintaro Funahashi, Charles~J Bruce, and Patricia~S Goldman-Rakic.
+\newblock Mnemonic coding of visual space in the monkey's dorsolateral
+  prefrontal cortex.
+\newblock {\em Journal of neurophysiology}, 61(2):331--349, 1989.
+
+\bibitem{zhang2019active}
+Xiaoxing Zhang, Wenjun Yan, Wenliang Wang, Hongmei Fan, Ruiqing Hou, Yulei
+  Chen, Zhaoqin Chen, Chaofan Ge, Shumin Duan, Albert Compte, et~al.
+\newblock Active information maintenance in working memory by a sensory cortex.
+\newblock {\em Elife}, 8:e43191, 2019.
+
+\bibitem{romo1999neuronal}
+Ranulfo Romo, Carlos~D Brody, Adri{\'a}n Hern{\'a}ndez, and Luis Lemus.
+\newblock Neuronal correlates of parametric working memory in the prefrontal
+  cortex.
+\newblock {\em Nature}, 399(6735):470--473, 1999.
+
+\bibitem{britten1992analysis}
+Kenneth~H Britten, Michael~N Shadlen, William~T Newsome, and J~Anthony Movshon.
+\newblock The analysis of visual motion: a comparison of neuronal and
+  psychophysical performance.
+\newblock {\em Journal of Neuroscience}, 12(12):4745--4765, 1992.
+
+\bibitem{barak2017recurrent}
+Omri Barak.
+\newblock Recurrent neural networks as versatile tools of neuroscience
+  research.
+\newblock {\em Current opinion in neurobiology}, 46:1--6, 2017.
+
+\bibitem{sussillo2014neural}
+David Sussillo.
+\newblock Neural circuits as computational dynamical systems.
+\newblock {\em Current opinion in neurobiology}, 25:156--163, 2014.
+
+\bibitem{maslennikov2020stimulus}
+Oleg~V Maslennikov and Vladimir~I Nekorkin.
+\newblock Stimulus-induced sequential activity in supervisely trained recurrent
+  networks of firing rate neurons.
+\newblock {\em Nonlinear Dynamics}, 101(2):1093--1103, 2020.
+
+\bibitem{maslennikov2019collective}
+Oleg~V Maslennikov and Vladimir~I Nekorkin.
+\newblock Collective dynamics of rate neurons for supervised learning in a
+  reservoir computing system.
+\newblock {\em Chaos: An Interdisciplinary Journal of Nonlinear Science},
+  29(10):103126, 2019.
+
+\bibitem{maslennikov2021dynamics}
+Oleg~Vladimirovich Maslennikov.
+\newblock Dynamics of an artificial recurrent neural network for the problem of
+  modeling a cognitive function.
+\newblock {\em Izvestiya VUZ. Applied Nonlinear Dynamics}, 29(5):799--811,
+  2021.
+
+\bibitem{pugavko2020dynamics}
+Mechislav~M Pugavko, Oleg~V Maslennikov, and Vladimir~I Nekorkin.
+\newblock Dynamics of spiking map-based neural networks in problems of
+  supervised learning.
+\newblock {\em Communications in Nonlinear Science and Numerical Simulation},
+  90:105399, 2020.
+
+\bibitem{yang2019task}
+Guangyu~Robert Yang, Madhura~R Joglekar, H~Francis Song, William~T Newsome, and
+  Xiao-Jing Wang.
+\newblock Task representations in neural networks trained to perform many
+  cognitive tasks.
+\newblock {\em Nature neuroscience}, 22(2):297--306, 2019.
+
+\bibitem{sussillo2009generating}
+David Sussillo and Larry~F Abbott.
+\newblock Generating coherent patterns of activity from chaotic neural
+  networks.
+\newblock {\em Neuron}, 63(4):544--557, 2009.
+
+\bibitem{nicola2017supervised}
+Wilten Nicola and Claudia Clopath.
+\newblock Supervised learning in spiking neural networks with force training.
+\newblock {\em Nature communications}, 8(1):1--15, 2017.
+
+\bibitem{song2017reward}
+H~Francis Song, Guangyu~R Yang, and Xiao-Jing Wang.
+\newblock Reward-based training of recurrent neural networks for cognitive and
+  value-based tasks.
+\newblock {\em Elife}, 6:e21492, 2017.
+
+\bibitem{demin2018recurrent}
+Vyacheslav Demin and Dmitry Nekhaev.
+\newblock Recurrent spiking neural network learning based on a competitive
+  maximization of neuronal activity.
+\newblock {\em Frontiers in neuroinformatics}, page~79, 2018.
+
+\bibitem{pugavko2020dynamicsisvvus}
+Mechislav~M Pugavko, Oleg~Vladimirovich Maslennikov, and Vladimir~Isaakovicih
+  Nekorkin.
+\newblock Dynamics of a network of map-based model neurons for supervised
+  learning of a reservoir computing system.
+\newblock {\em Izvestiya VUZ. Applied Nonlinear Dynamics}, 28(1):77--89, 2020.
+
+\bibitem{bellec2020solution}
+Guillaume Bellec, Franz Scherr, Anand Subramoney, Elias Hajek, Darjan Salaj,
+  Robert Legenstein, and Wolfgang Maass.
+\newblock A solution to the learning dilemma for recurrent networks of spiking
+  neurons.
+\newblock {\em Nature communications}, 11(1):1--15, 2020.
+
+\bibitem{davies2018loihi}
+Mike Davies, Narayan Srinivasa, Tsung-Han Lin, Gautham Chinya, Yongqiang Cao,
+  Sri~Harsha Choday, Georgios Dimou, Prasad Joshi, Nabil Imam, Shweta Jain,
+  et~al.
+\newblock Loihi: A neuromorphic manycore processor with on-chip learning.
+\newblock {\em Ieee Micro}, 38(1):82--99, 2018.
+
+\bibitem{markram2011introducing}
+Henry Markram, Karlheinz Meier, Thomas Lippert, Sten Grillner, Richard
+  Frackowiak, Stanislas Dehaene, Alois Knoll, Haim Sompolinsky, Kris
+  Verstreken, Javier DeFelipe, et~al.
+\newblock Introducing the human brain project.
+\newblock {\em Procedia Computer Science}, 7:39--42, 2011.
+
+\bibitem{steinhaus1956division}
+Hugo Steinhaus et~al.
+\newblock Sur la division des corps mat{\'e}riels en parties.
+\newblock {\em Bull. Acad. Polon. Sci}, 1(804):801, 1956.
+
+\bibitem{lloyd1957least}
+SP~Lloyd.
+\newblock Least square quantization in pcm. bell telephone laboratories paper.
+  published in journal much later: Lloyd, sp: Least squares quantization in
+  pcm.
+\newblock {\em IEEE Trans. Inform. Theor.(1957/1982)}, 18:11, 1957.
+
+\bibitem{hotelling1933analysis}
+Harold Hotelling.
+\newblock Analysis of a complex of statistical variables into principal
+  components.
+\newblock {\em Journal of educational psychology}, 24(6):417, 1933.
+
+\bibitem{kobak2014demixed}
+Dmitry Kobak, Wieland Brendel, Christos Constantinidis, Claudia~E Feierstein,
+  Adam Kepecs, Zachary~F Mainen, Ranulfo Romo, Xue-Lian Qi, Naoshige Uchida,
+  and Christian~K Machens.
+\newblock Demixed principal component analysis of population activity in higher
+  cortical areas reveals independent representation of task parameters.
+\newblock {\em arXiv preprint arXiv:1410.6031}, 2014.
+
+\end{thebibliography}

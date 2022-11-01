@@ -1,0 +1,52 @@
+This is BibTeX, Version 0.99d (TeX Live 2021/W32TeX)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: templateArxiv.aux
+The style file: unsrt.bst
+Database file #1: references.bib
+Warning--entry type for "norse2021" isn't style-file defined
+--line 131 of file references.bib
+Warning--I didn't find a database entry for "NEURIPS2019_9015"
+Warning--I didn't find a database entry for "xue2021spiking"
+Warning--I didn't find a database entry for "brette2005adaptive"
+You've used 33 entries,
+            1791 wiz_defined-function locations,
+            662 strings with 10522 characters,
+and the built_in function-call counts, 7884 in all, are:
+= -- 666
+> -- 451
+< -- 1
++ -- 163
+- -- 130
+* -- 628
+:= -- 1326
+add.period$ -- 100
+call.type$ -- 33
+change.case$ -- 31
+chr.to.int$ -- 0
+cite$ -- 33
+duplicate$ -- 298
+empty$ -- 713
+format.name$ -- 130
+if$ -- 1669
+int.to.chr$ -- 0
+int.to.str$ -- 33
+missing$ -- 34
+newline$ -- 169
+num.names$ -- 33
+pop$ -- 57
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 110
+stack$ -- 0
+substring$ -- 558
+swap$ -- 38
+text.length$ -- 1
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 0
+while$ -- 81
+width$ -- 35
+write$ -- 362
+(There were 4 warnings)
